@@ -20,6 +20,7 @@ const EnvConfig = {
 }
 export default {
     env,
+    namespace: 'manager',  // 命名空间，防止不同项目之间的localStorage冲突
     mock: true,  // 启用模拟数据模式
     ...EnvConfig[env]
 }

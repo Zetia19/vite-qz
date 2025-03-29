@@ -1,5 +1,9 @@
 <template>
-    <h3>欢迎页面{{ msg }}</h3>
+    <div class="welcome">
+        <h3>欢迎页面</h3>
+        <router-link to="/login">去登录</router-link>
+    </div>
+    
 </template>
 
 <!-- <script setup>
@@ -15,3 +19,6 @@ export default {
     props:['msg']
 }
 </script>
+
+<style scoped>
+</style>

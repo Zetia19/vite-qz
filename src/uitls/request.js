@@ -1,19 +1,14 @@
-// 存放网络请求的方法，网络请求放在api文件夹中
 import axios from "axios";
 import queurystring from "querystring";
+import config from "../config";
 
 
-/* 创建一个新的、独立的 Axios 实例。
- 它的主要作用是为不同的 HTTP 请求场景提供独立的配置，
- 避免全局配置的污染，从而提高代码的灵活性和可维护性。*/
-
- // 网络请求的公共配置 (更多配置项可参考 axios中文说明 看云)
 const instance = axios.create({
-    // 统一 baseURL也可以放这里，此处放在了path.js中
-    timeout: 5000  // 请求超时时间
+    baseURL: config.baseApi,
+    timeout: 8000
 });
 
-const errorHandle = (status, info) => {  // status是状态码，info是错误信息
+const errorHandle = (status, info) => {  
     switch(status){
         case 400:
             console.log("语义有误");
@@ -38,8 +33,6 @@ const errorHandle = (status, info) => {  // status是状态码，info是错误�
             break;
     }
 };
-
-// 网络请求中，最常用的是拦截器
 
 // 发送数据之前的拦截器（第一个函数是成功的回调，第二个函数是失败的回调）
 instance.interceptors.request.use(
@@ -68,5 +61,4 @@ instance.interceptors.response.use(
     }
 )
 
-// 创建自定义实例后导出（一定要导出整个实例，否则index.js引入时，会获取不到axios）
 export default instance;
