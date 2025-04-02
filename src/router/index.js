@@ -1,8 +1,5 @@
 import { createRouter,createWebHistory} from "vue-router"
 import HomeView from "../views/HomeView.vue"
-import WelcomeView from "../views/WelcomeView.vue"
-import LoginView from "../views/LoginView.vue"
-import About from "../views/About.vue"
 
 
 const routes =[
@@ -21,22 +18,18 @@ const routes =[
                 meta:{
                     title:'欢迎页'
                 },
-                component:WelcomeView
-            } ,
-            {
-                name:'login',
-                path:'login',
-                meta:{
-                    title:'登录页'
-                },
-                component:LoginView
-            }
+                component:()=>import('../views/WelcomeView.vue')
+            } 
         ]
     }
     ,
     {
-        path:'/about',
-        component:About
+        name:'login',
+        path:'/login',
+        meta:{
+            title:'登录页'
+        },
+        component:()=>import('../views/LoginView.vue')
     }
 ]
 

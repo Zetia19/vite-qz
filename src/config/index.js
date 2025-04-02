@@ -6,16 +6,15 @@ const env = import.meta.env.MODE || 'prod';  //'prod' 是安全降级策略，�
 const EnvConfig = {
     dev: {
         baseApi: '/', 
-        // mockApi:'/mock'  // 本地mock数据
-        mockApi:'' 
+        mockApi:'https://m1.apifoxmock.com/m1/6133935-5825689-default' 
     } ,
     test: {
         baseApi: '//test.futurefe.com/api',
-        mockApi:''  // 测试环境关闭mock
+        mockApi:'https://m1.apifoxmock.com/m1/6133935-5825689-default'   // 测试环境关闭mock
     },
     prod: {
         baseApi: '//futurefe.com/api',
-        mockApi:''  // 生产环境关闭mock
+        mockApi:'https://m1.apifoxmock.com/m1/6133935-5825689-default'  // 生产环境关闭mock
     }
 }
 export default {

@@ -1,6 +1,9 @@
 import axios from "axios";
-import queurystring from "querystring";
+import { ElMessage } from "element-plus";
 import config from "../config";
+import router from "../router";
+const TOKEN_INVALID = 'Token认证失败,请重新登录';
+const NETWORK_ERROR = '网络请求异常，请稍后重试';
 
 
 const instance = axios.create({
@@ -8,57 +11,61 @@ const instance = axios.create({
     timeout: 8000
 });
 
-const errorHandle = (status, info) => {  
-    switch(status){
-        case 400:
-            console.log("语义有误");
-            break;
-        case 401:
-            console.log("服务器认证失败");
-            break;
-        case 403:
-            console.log("token校验失败/服务器拒绝访问");
-            break;
-        case 404:
-            console.log("地址错误，找不到资源");
-            break;
-        case 500:
-            console.log("服务器遇到意外");
-            break;    
-        case 502:
-            console.log("服务器无响应");
-            break;    
-        default:
-            console.log(info);
-            break;
-    }
-};
+// 请求拦截
+    instance.interceptors.request.use((req)=>{
+        const headers = req.headers;
+        if(!headers.Authorization) headers.Authorization = 'Bear Zetia'
+        return req;
+    })
 
-// 发送数据之前的拦截器（第一个函数是成功的回调，第二个函数是失败的回调）
-instance.interceptors.request.use(
-    // config：包含网络请求的所有信息
-    config => {
-        if(config.method === "post"){
-            config.data = queurystring.stringify(config.data)
+// 响应拦截
+    instance.interceptors.response.use((res)=>{
+        const {code,data,msg} = res.data;
+        if(code === 200){
+            return data; 
+        }else if(code === 401){
+        ElMessage.error(TOKEN_INVALID);
+        setTimeout(()=>{
+            router.push('/login');
+        },1500);
+        return Promise.reject(TOKEN_INVALID);
+        }else{
+            ElMessage.error(msg || NETWORK_ERROR);
+            return Promise.reject(msg || NETWORK_ERROR);
         }
-        return config;
-    },
-    error =>{
-        return Promise.reject(error);
-    }
-);
+    })
 
-// 获取数据之前的拦截器
-instance.interceptors.response.use(
-    response => {
-    // response是网络请求的返回结果。如果走的是response，就算出错网络请求也是成功的。
-        return response.status ===200 ? Promise.resolve(response) : Promise.reject(response)
-    },
-    error => {
-        const { response } = error;
-        // 根据服务器返回的状态码和信息，做出相应的处理
-        errorHandle(response.status, response.info);       
-    }
-)
+    /**
+     * 请求核心hanshu
+     * @param {*} options 请求配置
+     * */ 
+    function request(options){
+        options.method = options.method || 'get';
+        if(options.method.toLowerCase() === 'get'){
+            options.params = options.data;
+        }
+        if(typeof options.mock !== 'undefined'){
+            config.mock = options.mock;
+        }
+        if(config.env === 'prod'){
+            instance.defaults.baseURL = config.baseApi;   
+        }
+        else{
+            instance.defaults.baseURL = config.mock ? config.mockApi : config.baseApi;
+        }
 
-export default instance;
+        return instance(options);
+    }
+
+    ['get','post','put','delete','patch'].forEach((item)=>{
+        request[item] = (url, data, options)=>{
+            return request({
+                url,
+                method: item,
+                data,
+                ...options 
+            })
+        }
+    })
+
+    export default request;

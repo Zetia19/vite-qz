@@ -2,7 +2,7 @@
 
 const base={   // 公共路径
     baseUrl:'http://localhost:8080',
-    goods:'/goods/list'
+    login:'/users/login'
 }
 
 export default base;

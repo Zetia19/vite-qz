@@ -1,11 +1,13 @@
-import axios from "../uitls/request";
+import request from "../uitls/request";
 import path from "./path";
 
-const api={
-    // 获取成品详情地址
-    getGoodsList(){
-        return axios.get(path.baseUrl + path.goods);
+export default {
+    login(params){
+        return request({
+            url:path.login,
+            method:"post",
+            data:params,
+            // mock:false  //   局部mock关闭
+        })
     }
 }
-
-export default api
