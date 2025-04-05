@@ -10,7 +10,13 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 export default defineConfig({
   server: {
     port: 8080,
-    host: 'localhost'
+    host: 'localhost',
+    // 开发服务器的代理配置，解决前端开发时的跨域问题
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000"
+      },
+    }
   },
   plugins: [
     vue(),

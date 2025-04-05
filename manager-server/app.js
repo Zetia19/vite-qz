@@ -8,11 +8,14 @@ const logger = require('koa-logger')
 
 const log4js = require('./utils/log4j')
 
-const index = require('./routes/index')
 const users = require('./routes/users')
+const router = require('koa-router')()
 
 // error handler
 onerror(app)
+
+// 引入数据库
+require('./config/db')
 
 // middlewares
 app.use(bodyparser({
@@ -28,17 +31,19 @@ app.use(views(__dirname + '/views', {
 }))
 
 // logger
+// ctx是Context的实例，它封装了请求和响应的所有信息
 app.use(async (ctx, next) => {
+  log4js.info(`get params:${JSON.stringify(ctx.request.query)}`)
+  log4js.info(`post params:${JSON.stringify(ctx.request.body)}`)
   await next()
-  log4js.info('log output')
-  // const start = new Date()
-  // const ms = new Date() - start
-  // console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
 
 // routes
-app.use(index.routes(), index.allowedMethods())
-app.use(users.routes(), users.allowedMethods())
+router.prefix('/api')  // 路由添加前缀
+router.use(users.routes(), users.allowedMethods())
+app.use(router.routes(), router.allowedMethods())
+
+
 
 // error-handling
 app.on('error', (err, ctx) => {

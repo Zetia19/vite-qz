@@ -56,7 +56,7 @@ exports.info = (content)=>{
     logger.level = level.info;
     logger.info(content);
 }
-
+ 
 /** 
 *日志输出，level为error
 *@param {String} content 

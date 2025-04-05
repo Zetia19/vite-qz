@@ -23,7 +23,7 @@ const instance = axios.create({
         const {code,data,msg} = res.data;
         if(code === 200){
             return data; 
-        }else if(code === 401){
+        }else if(code === 5001){
         ElMessage.error(TOKEN_INVALID);
         setTimeout(()=>{
             router.push('/login');
@@ -36,7 +36,7 @@ const instance = axios.create({
     })
 
     /**
-     * 请求核心hanshu
+     * 请求核心函数
      * @param {*} options 请求配置
      * */ 
     function request(options){
