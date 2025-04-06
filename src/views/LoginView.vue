@@ -36,7 +36,7 @@ export default {
       return {
         user:{
             userName:'',
-         userPwd:''
+            userPwd:''
         },
          rules:{
           userName: [
@@ -55,11 +55,19 @@ export default {
     
     methods:{
          login(){
+            /* validate方法用于验证表单是否通过验证，参数valid是一个回调函数，用于接收验证结果
+            如果验证通过，valid的值为true，否则为false */ 
              this.$refs.user.validate((valid) => {
                  if (valid) {
+                    /* api.login（this.user）调用request函数，将参数赋值给data，并发送请求
+                     通过then方法获取到返回的结果res(包含status和data等信息)*/
                      this.$api.login(this.user).then(res => {
+                        // 登陆成功后，保存用户信息到vuex中并跳转页面
+                        /* commit方法用于提交一个mutation，mutation是一个函数，用于修改state的值
+                        saveUserInfo是mutation的名称，res是传入的参数
+                        同时，store/index.js中，state里的userInfo对象调用storage.getItem（）会自动更新为res的值
+                        */
                         this.$store.commit('saveUserInfo',res);
-                        // this.$router.push({path:'/welcome'});
                         this.$router.push('/welcome');
                         console.log(res);
                      }).catch(error => {

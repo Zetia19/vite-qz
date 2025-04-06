@@ -11,14 +11,14 @@ const instance = axios.create({
     timeout: 8000
 });
 
-// 请求拦截
+// 请求拦截，在请求发送前加工
     instance.interceptors.request.use((req)=>{
         const headers = req.headers;
         if(!headers.Authorization) headers.Authorization = 'Bear Zetia'
         return req;
     })
 
-// 响应拦截
+// 响应拦截，在收到响应后处理
     instance.interceptors.response.use((res)=>{
         const {code,data,msg} = res.data;
         if(code === 200){
