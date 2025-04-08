@@ -14,12 +14,31 @@ const routes =[
         children:[
             {
                 name:'welcome',
-                path:'welcome',
+                path:'/welcome',
                 meta:{
-                    title:'欢迎页'
+                    title:'欢迎体验Vue3全栈课程'
                 },
                 component:()=>import('../views/WelcomeView.vue')
-            } 
+            },
+            {
+                name:'user',
+                // 如果需要共用父级路径，不要加斜杠。否则会变成绝对路径
+                path:'user',
+                meta:{
+                    title:'用户管理'
+                },
+                component:()=>import('../views/WelcomeView.vue'),
+                children:[
+                    {
+                        name:'info',
+                        path:'info',
+                        meta:{
+                            title:'信息统计'
+                        },
+                        component:()=>import('../views/WelcomeView.vue')
+                    }
+                ]
+            }
         ]
     }
     ,

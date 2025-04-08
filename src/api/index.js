@@ -9,5 +9,19 @@ export default {
             data:params,
             // mock:false  //   局部mock关闭
         })
+    },
+    noticeCount(params){
+        return request({
+            url:path.noticeCount,
+            method:"get",
+            data:{},
+        })
+    },
+    getMenuList(){
+        return request({
+            url:path.menuList,
+            method:"get",
+            data:{},
+        })
     }
 }
