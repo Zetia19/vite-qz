@@ -2,11 +2,9 @@
   export default {
     name: 'App',
     mounted() {
-      this.$storage.setItem('name', 'zetia');
-      this.$storage.setItem('userInfo', {age:19,sex:'女'})
       console.log('user=>',this.$storage.getItem('userInfo'));
       // this.$storage.clearItem('age');
-      this.$storage.clearAll();
+      // this.$storage.clearAll();
     }
   }
 </script>

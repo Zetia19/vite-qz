@@ -1,6 +1,6 @@
 /**
  * 通用工具函数
- */ 
+ */
 const log4js = require('./log4j')
 
 const CODE = {
@@ -17,25 +17,26 @@ module.exports = {
      * 分页结构封装
      * @param {number} pageNum
      * @param {number} pageSize
-     * */ 
-    pager({pageNum=1,pageSize=10}){
+     * */
+    pager({ pageNum = 1, pageSize = 10 }) {
         pageNum *= 1; // 转化为数字类型
         pageSize *= 1;
         const skipIndex = (pageNum - 1) * pageSize; // 跳过的条数
         return {
-            page:{
+            page: {
                 pageNum,
                 pageSize
             },
             skipIndex
         }
     },
-    success(data='',msg='',code=CODE.SUCCESS){
+    success(data = '', msg = '', code = CODE.SUCCESS) {
         log4js.debug('请求成功：' + JSON.stringify(data))
-        return {code,data,msg}
+        return { code, data, msg }
     },
-    fail(msg='',code=CODE.BUSINESS_ERROR,data=''){
+    fail(msg = '', code = CODE.BUSINESS_ERROR, data = '') {
         log4js.debug('请求失败：' + msg)
-        return {code,data,msg}
-    }
+        return { code, data, msg }
+    },
+    CODE
 }

@@ -7,7 +7,8 @@ import storage from "../uitls/storage";
 export default {
     // 存储用户信息
     saveUserInfo(state, userInfo) {
-        state.userInfo = userInfo || {};
+        state.userInfo = userInfo;
+        console.log("userInfo", userInfo);
         storage.setItem("userInfo", userInfo);
     },
     // 清除用户信息
