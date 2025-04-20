@@ -1,8 +1,7 @@
 <template>
-    <div class="user-manage">
-        <!-- query-form、base-table、action是index.scss的默认样式 -->
+    <div class="menu-manage">
         <div class="query-form">
-            <el-form ref="form" :inline="true" :model="queryForm" class="user-form">
+            <el-form ref="form" :inline="true" :model="queryForm">
                 <el-form-item label="菜单名称" prop="menuName">
                     <el-input v-model="queryForm.menuName" placeholder="请输入菜单名称"/>
                 </el-form-item>
@@ -20,12 +19,13 @@
         </div>
         <div class="base-table">
             <div class="action">
-                <el-button type="primary" @click="handleCreate">新增</el-button>
-                <el-button type="danger" @click="handlePatchDel">批量删除</el-button>
+                <el-button type="primary" @click="handleAdd(1)">新增</el-button>
             </div>
-            <el-table :data="userList" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55" />
-                <el-table-column 
+            <el-table 
+            :data="menuList" 
+            row-key="_id"
+            :tree-props="{ children: 'children' }">
+             <el-table-column
                  v-for="item in colums" 
                  :key="item.prop"
                  :prop="item.prop" 
@@ -33,26 +33,24 @@
                  :width="item.width"
                  :formatter="item.formatter"
                   />
-                <el-table-column fixed="right" label="操作" min-width="60">
+                <el-table-column fixed="right" label="操作" width="220">
                     <template #default="scope">
+                        <el-button
+                            @click="handleAdd(2,scope.row)"
+                            type="primary"
+                            size="small">
+                            新增
+                        </el-button>                       
                         <el-button @click="handleEdit(scope.row)" size="small">
                         编辑
                         </el-button>
                         <el-button type="danger" size="small" 
-                        @click="handleDel(scope.row)">
+                        @click="handleDel(scope.row._id)">
                             删除
                         </el-button>
                     </template>
                 </el-table-column>
             </el-table>
-            <!-- 分页控件 -->
-            <el-pagination
-            class="pagination" 
-            background 
-            layout="prev, pager, next" 
-            :total="pager.total"
-            :page-size="pager.pageSize"
-            @current-change="handleCurrentChange" />
         </div>
     </div>
 
@@ -68,14 +66,13 @@
                 :props="{ checkStrictly: true, value: '_id', label: 'menuName' }"
                 clearable
             />
-            <span>不选，则直接创建一级菜单</span>
             </el-form-item>
             <el-form-item label="菜单类型" prop="menuType">
-          <el-radio-group v-model="menuForm.menuType">
-            <el-radio :label="1">菜单</el-radio>
-            <el-radio :label="2">按钮</el-radio>
-          </el-radio-group>
-        </el-form-item>
+              <el-radio-group v-model="menuForm.menuType">
+                <el-radio :value="1">菜单</el-radio>
+                <el-radio :value="2">按钮</el-radio>
+              </el-radio-group>
+            </el-form-item>
         <el-form-item label="菜单名称" prop="menuName">
           <el-input v-model="menuForm.menuName" placeholder="请输入菜单名称" />
         </el-form-item>
@@ -113,12 +110,12 @@
           v-show="menuForm.menuType == 1"
         >
           <el-radio-group v-model="menuForm.menuState">
-            <el-radio :label="1">正常</el-radio>
-            <el-radio :label="2">停用</el-radio>
+            <el-radio :value="1">正常</el-radio>
+            <el-radio :value="2">停用</el-radio>
           </el-radio-group>
         </el-form-item>
         </el-form>
-        
+
         <template #footer>
             <div class="dialog-footer">
                 <el-button @click="handleClose">取消</el-button>
@@ -135,26 +132,22 @@ import { getCurrentInstance, onMounted , reactive , ref, toRaw} from 'vue'
 import utils from '../uitls/utils';
 
 export default {
-    name: 'menu',
+    name: 'MenuPage',
     setup(){
         //快速初始化一个对象，ctx是上下文的全局对象(获取Composition API上下文对象)
         const { proxy } = getCurrentInstance()
 
-        const menuForm = {
+        const menuForm = reactive({
             parentId: [null],
             menuType: 1,
             menuState: 1,
-        }
-        // 初始化分页器对象
-        const pager = reactive({
-            pageNum:1,
-            pageSize:10,
         })
         // 弹框显示对象
         const showModal = ref(false)
         // 新增queryForm对象
         const queryForm = reactive({
             menuState: 1,
+            menuName: ""
         })
         // 菜单列表
         const menuList = ref([])
@@ -187,10 +180,12 @@ export default {
         {
           label: "图标",
           prop: "icon",
+          width: 150,
         },
         {
           label: "菜单类型",
           prop: "menuType",
+          width: 150,
           formatter(row, column, value) {
             return {
               1: "菜单",
@@ -201,6 +196,7 @@ export default {
         {
           label: "权限标识",
           prop: "menuCode",
+          width:150
         },
         {
           label: "路由地址",
@@ -213,7 +209,7 @@ export default {
         {
           label: "菜单状态",
           prop: "menuState",
-          width: 90,
+          width: 100,
           formatter(row, column, value) {
             return {
               1: "正常",
@@ -238,13 +234,17 @@ export default {
         // 获取菜单列表
         const getMenuList = async ()=>{
             try {
-                let list = await proxy.$api.getMenuList(this.queryForm);
-                this.menuList = list;
+                // const params = toRaw(queryForm);
+                const params = {...queryForm};
+                let list = await proxy.$api.getMenuList(params);
+                console.log('获取到的菜单列表:', list);
+                menuList.value = list || [];
             } catch (e) {
-                throw new Error(e);
+              console.error('请求失败:', e); // 添加错误日志
+              proxy.$message.error('获取菜单失败');
             }
         }
-        // 查询，获取用户列表
+        // 查询
         const handleQuery = ()=>{
             getMenuList();
         }
@@ -252,24 +252,24 @@ export default {
         const handleReset = (form)=>{
             proxy.$refs[form].resetFields()
         }
-        // 分页事件处理
-        // 页码改变时触发,并传递新的页码作为参数。
-        const handleCurrentChange = (val)=>{ 
-            pager.pageNum = val;
-            getUserList()
-        }
         // 删除
         const handleDel = async (_id)=>{
-        // ?
         await proxy.$api.menuSubmit({ _id, action: "delete" });
         proxy.$message.success("删除成功");
         getMenuList();
     }
 
         // 新增用户
-        const handleCreate = ()=>{
-            action.value = 'add';
+        const handleAdd = (type,row)=>{
             showModal.value = true;
+            action.value = 'add';
+            if (type == 2) {
+                menuForm.parentId = [...row.parentId, row._id].filter(
+                (item) => item
+                );
+            }else if(type == 1){
+
+            }
         }
         // 关闭用户弹窗
         const handleClose = ()=>{
@@ -280,15 +280,12 @@ export default {
         const handleSubmit = ()=>{
             proxy.$refs.dialogForm.validate( async (valid)=>{
                 if(valid){
-                    let params = toRaw(menuForm);
-                    params.action=action.value;
-                    let res = await proxy.$api.userSubmit(params);
-                    if(res){
-                        showModal.value = false;
-                        proxy.$message.success('操作成功')
-                        handleReset('dialogForm'); // 重置表单
-                        getMenuList()
-                    }
+                    let params = {...menuForm,action}
+                    let res = await proxy.$api.menuSubmit(params);
+                    showModal.value = false;
+                    proxy.$message.success('操作成功')
+                    handleReset('dialogForm'); // 重置表单
+                    getMenuList()
                 }
             })
         }
@@ -296,14 +293,13 @@ export default {
         const handleEdit = (row)=>{
             showModal.value = true;
             action.value = 'edit';
+            // 等待弹窗完全渲染后再赋值
             proxy.$nextTick(()=>{
                 Object.assign(menuForm, row);
             })
-            
         }
         return {
             menuForm,
-            pager,
             showModal,
             queryForm,
             menuList,
@@ -313,9 +309,8 @@ export default {
             getMenuList,
             handleQuery,
             handleReset,
-            handleCurrentChange,
             handleDel,
-            handleCreate,
+            handleAdd,
             handleClose,
             handleSubmit,
             handleEdit,

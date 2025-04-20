@@ -44,9 +44,10 @@ instance.interceptors.response.use((res) => {
  * */
 function request(options) {
     options.method = options.method || 'get';
-    if (options.method.toLowerCase() === 'get') {
-        options.params = options.data;
-    }
+    // if (options.method.toLowerCase() === 'get') {
+    //     options.params = options.data;
+    //     // options.params = { ...options.params, ...options.data };
+    // }
     let isMock = config.mock;
     if (typeof options.mock !== 'undefined') {
         isMock = options.mock;

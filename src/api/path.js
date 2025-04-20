@@ -10,6 +10,7 @@ const base = {   // 公共路径
     userRoleList: '/roles/allList',
     DeptList: '/dept/list',
     userSubmit: '/users/operate',
+    menuSubmit: '/menu/operate',
 }
 
 export default base;

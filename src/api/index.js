@@ -14,23 +14,23 @@ export default {
         return request({
             url: path.noticeCount,
             method: "get",
-            data: {},
+            params: {},
             mock: true
         })
     },
-    getMenuList() {
+    getMenuList(params) {
         return request({
-            url: path.menuList,
-            method: "get",
-            data: {},
-            mock: true
+            url: '/menu/list',
+            method: 'get',
+            params: params,
+            mock: false
         })
     },
     getUserList(params) {
         return request({
             url: path.userList,
             method: "get",
-            data: params,
+            params: params,
             mock: false
         })
     },
@@ -53,13 +53,21 @@ export default {
         return request({
             url: path.DeptList,
             method: "get",
-            data: {},
+            params: {},
             mock: true
         })
     },
     userSubmit(params) {
         return request({
             url: path.userSubmit,
+            method: "post",
+            data: params,
+            mock: false
+        })
+    },
+    menuSubmit(params) {
+        return request({
+            url: path.menuSubmit,
             method: "post",
             data: params,
             mock: false

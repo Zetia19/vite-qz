@@ -8,11 +8,12 @@ const logger = require('koa-logger')
 
 const log4js = require('./utils/log4j')
 
-const users = require('./routes/users')
 const router = require('koa-router')()
 const jwt = require('jsonwebtoken')
 const koajwt = require('koa-jwt')
 const util = require('./utils/util')
+const users = require('./routes/users')
+const menus = require('./routes/menus')
 
 // error handler
 onerror(app)
@@ -52,10 +53,14 @@ app.use(koajwt({ secret: 'qz' }).unless({
   path: [/^\/api\/users\/login/]  // 排除登录接口
 }))
 
-// routes
-router.prefix('/api')  // 路由添加前缀
+// routes 路由添加前缀
+router.prefix('/api')  // 一级路由
 
+// 子路由
 router.use(users.routes(), users.allowedMethods())
+router.use(menus.routes(), menus.allowedMethods())
+
+// 加载全部路由
 app.use(router.routes(), router.allowedMethods())
 
 
