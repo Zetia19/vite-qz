@@ -14,6 +14,7 @@ const koajwt = require('koa-jwt')
 const util = require('./utils/util')
 const users = require('./routes/users')
 const menus = require('./routes/menus')
+const roles = require('./routes/roles')
 
 // error handler
 onerror(app)
@@ -59,6 +60,7 @@ router.prefix('/api')  // 一级路由
 // 子路由
 router.use(users.routes(), users.allowedMethods())
 router.use(menus.routes(), menus.allowedMethods())
+router.use(roles.routes(), roles.allowedMethods())
 
 // 加载全部路由
 app.use(router.routes(), router.allowedMethods())

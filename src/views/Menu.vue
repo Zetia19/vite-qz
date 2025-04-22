@@ -234,10 +234,8 @@ export default {
         // 获取菜单列表
         const getMenuList = async ()=>{
             try {
-                // const params = toRaw(queryForm);
                 const params = {...queryForm};
                 let list = await proxy.$api.getMenuList(params);
-                console.log('获取到的菜单列表:', list);
                 menuList.value = list || [];
             } catch (e) {
               console.error('请求失败:', e); // 添加错误日志

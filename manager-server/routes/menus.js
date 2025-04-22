@@ -36,17 +36,13 @@ router.post('/operate', async (ctx) => {
 
 // 获取用户列表
 router.get('/list', async (ctx) => {
-    console.log('服务端收到参数:', ctx.request.query);
     const { menuName, menuState } = ctx.request.query;
     const params = {}
     if (menuName) params.menuName = menuName;
     if (menuState) params.menuState = menuState;
-
     try {
-        console.log('最终查询条件:', params);
         // 根据条件查询所有用户列表
         let list = await Menu.find(params) || []
-
         const permissionList = getTreeMenu(list, null, [])
         ctx.body = util.success(permissionList)
     } catch (err) {

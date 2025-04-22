@@ -18,6 +18,14 @@ export default {
             mock: true
         })
     },
+    getRoleList(params) {
+        return request({
+            url: '/roles/list',
+            method: 'get',
+            params: params,
+            mock: false
+        })
+    },
     getMenuList(params) {
         return request({
             url: '/menu/list',
@@ -41,12 +49,12 @@ export default {
             data: params
         })
     },
-    getRoleList() {
+    getRoleAllList() {
         return request({
             url: path.userRoleList,
             method: "get",
             data: {},
-            mock: true
+            mock: false
         })
     },
     getDeptList() {
@@ -68,6 +76,22 @@ export default {
     menuSubmit(params) {
         return request({
             url: path.menuSubmit,
+            method: "post",
+            data: params,
+            mock: false
+        })
+    },
+    roleOperate(params) {
+        return request({
+            url: '/roles/operate',
+            method: "post",
+            data: params,
+            mock: false
+        })
+    },
+    updatePermission(params) {
+        return request({
+            url: '/roles/update/permission',
             method: "post",
             data: params,
             mock: false

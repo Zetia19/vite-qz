@@ -23,7 +23,7 @@ const routes = [
             {
                 name: 'user',
                 // 如果需要共用父级路径，不要加斜杠。否则会变成绝对路径
-                path: 'user',
+                path: '/system/user',
                 meta: {
                     title: '用户管理'
                 },
@@ -31,12 +31,20 @@ const routes = [
             },
             {
                 name: 'menu',
-                path: 'menu',
+                path: '/system/menu',
                 meta: {
                     title: '菜单管理'
                 },
                 component: () => import('../views/Menu.vue'),
-            }
+            },
+            {
+                name: 'role',
+                path: '/system/role',
+                meta: {
+                    title: '角色管理'
+                },
+                component: () => import('../views/Role.vue'),
+            },
         ]
     }
     ,
