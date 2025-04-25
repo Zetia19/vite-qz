@@ -148,5 +148,16 @@ router.post('/operate', async (ctx) => {
   }
 })
 
+// 获取全部用户列表
+router.get('/all/list', async (ctx) => {
+  try {
+    const list = await User.find({}, 'userId userName userEmail')
+    console.log("list=>", list)
+    ctx.body = util.success(list)
+  } catch (err) {
+    ctx.body = util.fail(err.stack)
+  }
+})
+
 
 module.exports = router

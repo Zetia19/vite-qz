@@ -26,6 +26,14 @@ export default {
             mock: false
         })
     },
+    getDeptList(params) {
+        return request({
+            url: '/dept/list',
+            method: 'get',
+            params: params,
+            mock: true
+        })
+    },
     getMenuList(params) {
         return request({
             url: '/menu/list',
@@ -39,6 +47,14 @@ export default {
             url: path.userList,
             method: "get",
             params: params,
+            mock: false
+        })
+    },
+    getAllUserList() {
+        return request({
+            url: '/users/all/list',
+            method: "get",
+            params: {},
             mock: false
         })
     },
@@ -57,12 +73,12 @@ export default {
             mock: false
         })
     },
-    getDeptList() {
+    getDeptList(params) {
         return request({
             url: path.DeptList,
             method: "get",
-            params: {},
-            mock: true
+            params: params,
+            mock: false
         })
     },
     userSubmit(params) {
@@ -84,6 +100,14 @@ export default {
     roleOperate(params) {
         return request({
             url: '/roles/operate',
+            method: "post",
+            data: params,
+            mock: false
+        })
+    },
+    deptOperate(params) {
+        return request({
+            url: '/dept/operate',
             method: "post",
             data: params,
             mock: false

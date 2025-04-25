@@ -34,17 +34,22 @@ router.post('/operate', async (ctx) => {
 
 
 
-// 获取用户列表
+// 获取菜单列表
 router.get('/list', async (ctx) => {
     const { menuName, menuState } = ctx.request.query;
     const params = {}
     if (menuName) params.menuName = menuName;
     if (menuState) params.menuState = menuState;
     try {
-        // 根据条件查询所有用户列表
         let list = await Menu.find(params) || []
-        const permissionList = getTreeMenu(list, null, [])
-        ctx.body = util.success(permissionList)
+        if (menuName) {
+            ctx.body = util.success(list)
+            return;
+        } else {
+            const permissionList = getTreeMenu(list, null, [])
+            ctx.body = util.success(permissionList)
+        }
+
     } catch (err) {
         ctx.body = util.fail(`查询异常：${err.stack}`)
     }
