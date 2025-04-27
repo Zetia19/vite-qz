@@ -84,7 +84,7 @@ export default {
       handleLogout(key) {
         if(key=='email') return;
         this.$store.commit('saveUserInfo',{}); // 清空用户信息
-        this.userInfo = null; // 清空用户信息
+        this.userInfo = {}; // 清空用户信息
         this.$router.push('/login'); // 跳转到登录页面
     },
       // 菜单折叠
@@ -101,7 +101,8 @@ export default {
       },
       async getMenuList(){
         try {
-          const list = await this.$api.getMenuList()
+          const list = await this.$api.getPermissionList()
+          // const list = await this.$api.getMenuList()
           this.userMenu = list;
         } catch (error) {
           console.error('获取菜单列表失败:', error);

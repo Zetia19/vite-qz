@@ -4,7 +4,9 @@
 const router = require('koa-router')()
 router.prefix('/users')  //二级路由
 const User = require('../models/userSchema')
+const Menu = require('../models/menuSchema')
 const Counter = require('../models/counterSchema')
+const Role = require('../models/roleSchema')
 const util = require('../utils/util')
 const jwt = require('jsonwebtoken')
 const md5 = require('md5')
@@ -21,7 +23,8 @@ router.post('/login', async (ctx) => {
      * */
     const res = await User.findOne({
       userName,
-      userPwd
+      // userPwd
+      userPwd: md5(userPwd)
     }, 'userId userName userEmail state role deptId roleList')
 
     const data = res._doc;
@@ -159,5 +162,34 @@ router.get('/all/list', async (ctx) => {
   }
 })
 
+// 获取用户对应的权限菜单
+router.get('/getPermissionList', async (ctx) => {
+  let authorization = ctx.request.headers.authorization
+  let { data } = util.decoded(authorization)
+  // getMenuList是个async函数，返回的是promise对象，所以需要在调用处使用await
+  let menuList = await getMenuList(data.role, data.roleList)
+  ctx.body = util.success(menuList)
+})
 
+async function getMenuList(userRole, roleKeys) {
+  let rootList = []
+  if (userRole == 0) {
+    rootList = await Menu.find({}) || []
+  }
+  else {
+    // 根据用户拥有的角色，获取权限列表（菜单ID），再根据菜单ID查询菜单
+    // 先查找用户对应的角色有哪些，再根据角色ID查询对应的菜单
+    let roleList = await Role.find({ _id: { $in: roleKeys } })
+    let permissionList = []
+    // 过滤重复的菜单权限(菜单id)
+    roleList.map(role => {
+      let { checkedKeys, halfCheckedKeys } = role.permissionList
+      permissionList = permissionList.concat([...checkedKeys, ...halfCheckedKeys])
+    })
+    permissionList = [...new Set(permissionList)]
+    // 根据权限列表（菜单ID）查询菜单
+    rootList = await Menu.find({ _id: { $in: permissionList } })
+  }
+  return util.getTreeMenu(rootList, null, [])
+}
 module.exports = router

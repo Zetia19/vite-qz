@@ -42,6 +42,14 @@ export default {
             mock: false
         })
     },
+    getPermissionList() {
+        return request({
+            url: '/users/getPermissionList',
+            method: 'get',
+            params: {},
+            mock: false
+        })
+    },
     getUserList(params) {
         return request({
             url: path.userList,

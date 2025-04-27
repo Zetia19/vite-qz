@@ -2,7 +2,7 @@
   export default {
     name: 'App',
     mounted() {
-      console.log('user=>',this.$storage.getItem('userInfo'));
+      // console.log('user=>',this.$storage.getItem('userInfo'));
       // this.$storage.clearItem('age');
       // this.$storage.clearAll();
     }

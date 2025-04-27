@@ -25,10 +25,11 @@ instance.interceptors.response.use((res) => {
     const { code, data, msg } = res.data;
     if (code === 200) {
         return data;
-    } else if (code === 5001) {
+    } else if (code === 5001 || code === 401) {
         ElMessage.error(TOKEN_INVALID);
         setTimeout(() => {
             router.push('/login');
+            storage.clearItem('userInfo');  // 新增清除用户信息
         }, 1500)
         return Promise.reject(TOKEN_INVALID);
     } else {

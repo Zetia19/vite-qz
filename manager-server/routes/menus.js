@@ -46,7 +46,7 @@ router.get('/list', async (ctx) => {
             ctx.body = util.success(list)
             return;
         } else {
-            const permissionList = getTreeMenu(list, null, [])
+            const permissionList = util.getTreeMenu(list, null, [])
             ctx.body = util.success(permissionList)
         }
 

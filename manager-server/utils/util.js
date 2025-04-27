@@ -1,6 +1,7 @@
 /**
  * 通用工具函数
  */
+const jwt = require('jsonwebtoken')
 const log4js = require('./log4j')
 
 const CODE = {
@@ -37,6 +38,31 @@ module.exports = {
     fail(msg = '', code = CODE.BUSINESS_ERROR, data = '') {
         log4js.debug('请求失败：' + msg)
         return { code, data, msg }
+    },
+    decoded(authorization) {
+        if (authorization) {
+            let token = authorization.split(' ')[1]
+            return jwt.verify(token, 'qz')
+        }
+        return '';
+    },
+    getTreeMenu(rootList, id, list) {
+        for (let i = 0; i < rootList.length; i++) {
+            let item = rootList[i]
+            if (String(item.parentId.slice().pop()) == String(id)) {
+                list.push(item._doc)
+            }
+        }
+        list.map(item => {
+            item.children = []
+            this.getTreeMenu(rootList, item._id, item.children)
+            if (item.children.length == 0) {
+                delete item.children;
+            } else if (item.children.length > 0 && item.children[0].menuType == 2) {
+                item.action = item.children;
+            }
+        })
+        return list;
     },
     CODE
 }
