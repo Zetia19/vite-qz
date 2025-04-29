@@ -51,9 +51,9 @@ async function loadAsyncRoutes() {
     let userInfo = storage.getItem('userInfo') || {};
     if (userInfo.token) {
         try {
-            const menuList = await API.getPermissionList()
-            // const { menuList } = await API.getPermissionList()
-            console.log('API返回数据:', menuList)
+            // const menuList = await API.getPermissionList()
+            const { menuList } = await API.getPermissionList()
+            // console.log('API返回数据:', menuList)
             let routes = generateRoutes(menuList)
 
             // 定义组件映射
@@ -61,7 +61,8 @@ async function loadAsyncRoutes() {
                 'User': () => import('../views/User.vue'),
                 'Menu': () => import('../views/Menu.vue'),
                 'Role': () => import('../views/Role.vue'),
-                'Dept': () => import('../views/Dept.vue')
+                'Dept': () => import('../views/Dept.vue'),
+                'Leave': () => import('../views/Leave.vue'),
             }
 
             routes.map(route => {
@@ -121,7 +122,7 @@ function checkPermission(path) {
 
 // 导航守卫
 router.beforeEach((to, from, next) => {
-    if (checkPermission(to.path)) {
+    if (router.hasRoute(to.name)) {
         // 修改页面标题
         document.title = to.meta.title;
         next()

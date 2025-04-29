@@ -26,16 +26,8 @@
         </div>
         <div class="base-table">
             <div class="action">
-                <!-- add是参数，'user-create'是值 -->
-                <el-button 
-                type="primary" 
-                @click="handleCreate" 
-                v-has:add="'user-create'">
-                        新增
-                </el-button>
-                <el-button type="danger" @click="handlePatchDel"
-                v-has="'user-patch-delete'">
-                >批量删除</el-button>
+                <el-button type="primary" @click="handleCreate">新增</el-button>
+                <el-button type="danger" @click="handlePatchDel">批量删除</el-button>
             </div>
             <el-table :data="userList" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" />
@@ -49,15 +41,10 @@
                   />
                 <el-table-column fixed="right" label="操作" min-width="60">
                     <template #default="scope">
-                        <el-button 
-                        v-has="'user-edit'"
-                        @click="handleEdit(scope.row)" 
-                        size="small">
+                        <el-button @click="handleEdit(scope.row)" size="small">
                         编辑
                         </el-button>
-                        <el-button 
-                        v-has="'user-delete'"
-                        type="danger" size="small" 
+                        <el-button type="danger" size="small" 
                         @click="handleDel(scope.row)">
                             删除
                         </el-button>
@@ -73,7 +60,11 @@
             :page-size="pager.pageSize"
             @current-change="handleCurrentChange" />
         </div>
-         <!-- 新增用户弹框 -->
+    </div>
+
+
+
+    <!-- 新增用户弹框 -->
     <el-dialog v-model="showModal" title="新增用户" width="30%"  @close="handleClose">
         <el-form ref="dialogForm" :model="userForm" label-width="100px" :rules="rules">
             <el-form-item label="用户名" prop="userName">
@@ -129,8 +120,7 @@
                 </el-button>
             </div>
         </template>
-     </el-dialog>
-    </div> 
+    </el-dialog>
 </template>
 
 <script>

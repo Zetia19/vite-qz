@@ -30,6 +30,8 @@ instance.interceptors.response.use((res) => {
         setTimeout(() => {
             router.push('/login');
             storage.clearItem('userInfo');  // 新增清除用户信息
+            storage.clearItem('menuList');  // 新增用户菜单权限
+            storage.clearItem('actionist');  // 新增用户按钮权限
         }, 1500)
         return Promise.reject(TOKEN_INVALID);
     } else {

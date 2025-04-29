@@ -168,8 +168,16 @@ router.get('/getPermissionList', async (ctx) => {
   let { data } = util.decoded(authorization)
   // getMenuList是个async函数，返回的是promise对象，所以需要在调用处使用await
   let menuList = await getMenuList(data.role, data.roleList)
-  ctx.body = util.success(menuList)
+  /* 当对一个Object或数组里某个项进行更改时，会影响到整个对象
+  （getActionList用了pop,会改变原数据）。
+  为了避免这种情况，需要使用JSON.parse(JSON.stringify(obj))来复制一个新的对象或数组，
+  进行深度克隆/深拷贝，这样就可以在不影响原始对象的情况下进行操作。 */
+  /* JS内存管理包含 栈 和 堆，
+   基础类型对象 和 函数调用 是在 栈 储存，引用类型对象 是在 堆 储存 */
+  let actionList = getActionList(JSON.parse(JSON.stringify(menuList)))
+  ctx.body = util.success({ menuList, actionList })
 })
+
 
 async function getMenuList(userRole, roleKeys) {
   let rootList = []
@@ -192,4 +200,26 @@ async function getMenuList(userRole, roleKeys) {
   }
   return util.getTreeMenu(rootList, null, [])
 }
+
+function getActionList(list) {
+  let actionList = []
+  const deep = (arr) => {
+    while (arr.length) {
+      let item = arr.pop()
+      // 最后一级
+      if (item.action) {
+        item.action.map(action => {
+          actionList.push(action.menuCode)
+        })
+      }
+      // 一级菜单
+      if (item.children && !item.action) {
+        deep(item.children)
+      }
+    }
+  }
+  deep(list)
+  return actionList;
+}
+
 module.exports = router

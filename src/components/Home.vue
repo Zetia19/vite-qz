@@ -101,9 +101,11 @@ export default {
       },
       async getMenuList(){
         try {
-          const list = await this.$api.getPermissionList()
+          const {menuList,actionList} = await this.$api.getPermissionList()
           // const list = await this.$api.getMenuList()
-          this.userMenu = list;
+          this.userMenu = menuList;
+          this.$store.commit('saveUserMenu',menuList); // 保存菜单列表
+          this.$store.commit('saveUserAction',actionList); // 保存按钮列表
         } catch (error) {
           console.error('获取菜单列表失败:', error);
         }
