@@ -1,36 +1,31 @@
 <template>
-    <div class="user-manage">
-        <!-- query-form、base-table、action是index.scss的默认样式 -->
+    <div class="leave-manage">
         <div class="query-form">
-            <el-form ref="form" :inline="true" :model="user" class="user-form">
-                <el-form-item label="用户ID" prop="userId">
-                    <el-input v-model="user.userId" placeholder="请输入用户ID"/>
-                </el-form-item>
-                <el-form-item label="用户名" prop="userName">
-                    <el-input v-model="user.userName" placeholder="请输入用户名"/>
-                </el-form-item>
-                <el-form-item label="用户状态" prop="state">
-                    <el-select v-model="user.state" placeholder="用户状态"  clearable style="width: 120px;">
-                        <el-option :value="0" label="所有"></el-option>
-                        <el-option :value="1" label="在职"></el-option>
-                        <el-option :value="2" label="离职"></el-option>
-                        <el-option :value="3" label="试用期"></el-option>
+            <el-form ref="form" :inline="true" :model="queryForm">
+                <el-form-item label="审批状态" prop="applyState">
+                    <el-select v-model="queryForm.applyState" clearable style="width: 120px;" placeholder="全部">
+                        <el-option value="" label="全部"></el-option>
+                        <el-option :value="1" label="待审批"></el-option>
+                        <el-option :value="2" label="审批中"></el-option>
+                        <el-option :value="3" label="审批拒绝"></el-option>
+                        <el-option :value="4" label="审批通过"></el-option>
+                        <el-option :value="5" label="作废"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="handleQuery">查询</el-button>
-                    <!-- 指该表单的ref属性：form -->
                     <el-button @click="handleReset('form')">重置</el-button>
                 </el-form-item>
             </el-form>
         </div>
         <div class="base-table">
             <div class="action">
-                <el-button type="primary" @click="handleCreate">新增</el-button>
-                <el-button type="danger" @click="handlePatchDel">批量删除</el-button>
+                <el-button 
+                type="primary" 
+                @click="handleApply"
+                v-has="'leave-create'">申请休假</el-button>
             </div>
-            <el-table :data="userList" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55" />
+            <el-table :data="applyList">
                 <el-table-column 
                  v-for="item in colums" 
                  :key="item.prop"
@@ -39,14 +34,20 @@
                  :width="item.width"
                  :formatter="item.formatter"
                   />
-                <el-table-column fixed="right" label="操作" min-width="60">
+                <el-table-column fixed="right" label="操作" min-width="80">
                     <template #default="scope">
-                        <el-button @click="handleEdit(scope.row)" size="small">
-                        编辑
+                        <el-button 
+                        @click="handleDetail(scope.row)" 
+                        v-has="'leave-query'"
+                        size="small" type="primary">
+                        查看
                         </el-button>
-                        <el-button type="danger" size="small" 
-                        @click="handleDel(scope.row)">
-                            删除
+                        <el-button 
+                        type="danger" size="small" 
+                        v-has="'leave-delete'"
+                        v-if="[1,2].includes(scope.row.applyState)"
+                        @click="handleDel(scope.row._id)">
+                            作废
                         </el-button>
                     </template>
                 </el-table-column>
@@ -60,67 +61,92 @@
             :page-size="pager.pageSize"
             @current-change="handleCurrentChange" />
         </div>
+    <el-dialog v-model="showModal" title="申请休假" width="30%"  @close="handleClose">
+            <el-form ref="dialogForm" :model="leaveForm" label-width="100px" :rules="rules">
+                <el-form-item label="休假类型" prop="applyType" required>
+                    <el-select v-model="leaveForm.applyType">
+                        <el-option :value="1" label="事假"></el-option>
+                        <el-option :value="2" label="调休"></el-option>
+                        <el-option :value="3" label="年假"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="休假类型" required>
+                    <el-row>
+                        <el-col :span=8>
+                            <el-form-item prop="startTime" required>
+                                <el-date-picker
+                                v-model="leaveForm.startTime"
+                                type="date"
+                                placeholder="选择开始日期"
+                                @change="(val)=>handleDateChange('startTime',val)"
+                            />
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="1">-</el-col>
+                        <el-col :span=8>
+                            <el-form-item prop="endTime" required>
+                                <el-date-picker
+                                v-model="leaveForm.endTime"
+                                type="date"
+                                placeholder="选择结束日期"
+                                @change="(val)=>handleDateChange('endTime',val)"
+                            />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item label="休假时长" required>
+                    {{leaveForm.leaveTime}}
+                </el-form-item>
+                <el-form-item label="休假原因" prop="reasons">
+                    <el-input 
+                        type="textarea"
+                        :rows="3"
+                        v-model="leaveForm.reasons"
+                        placeholder="请输入休假原因"
+                    />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="handleClose">取消</el-button>
+                    <el-button type="primary" @click="handleSubmit">
+                    确定
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+        <el-dialog title="申请休假详情" width="40%" v-model="showDetailModal">
+            <el-steps 
+                :active="detail.applyState > 2 ? 3 : detail.applyState" 
+                finish-status="success" 
+                align-center >
+                <el-step title="待审批" />
+                <el-step title="审批中" />
+                <el-step title="审批通过/审批拒绝" />
+            </el-steps>
+            <el-form label-width="120px" label-suffix=":">
+                <el-form-item label="休假类型">
+                    <div>{{ detail.applyTypeName }}</div>
+                </el-form-item>
+                <el-form-item label="休假时间">
+                    <div>{{ detail.time }}</div>
+                </el-form-item>
+                <el-form-item label="休假时长">
+                    <div>{{ detail.leaveTime }}</div>
+                </el-form-item>
+                <el-form-item label="休假原因">
+                    <div>{{ detail.reasons }}</div>
+                </el-form-item>
+                <el-form-item label="审批状态">
+                    <div>{{ detail.applyStateName }}</div>
+                </el-form-item>
+                <el-form-item label="审批人">
+                    <div>{{ detail.curAuditUserName }}</div>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
     </div>
-
-
-
-    <!-- 新增用户弹框 -->
-    <el-dialog v-model="showModal" title="新增用户" width="30%"  @close="handleClose">
-        <el-form ref="dialogForm" :model="userForm" label-width="100px" :rules="rules">
-            <el-form-item label="用户名" prop="userName">
-                <!-- v-model:双向绑定 -->
-                <el-input v-model="userForm.userName" :disabled="action=='edit'" placeholder="请输入用户名称"/>
-            </el-form-item>
-            <el-form-item label="邮箱" prop="userEmail">
-                <el-input v-model="userForm.userEmail" :disabled="action=='edit'" placeholder="请输入用户邮箱">
-                    <template #append>@vueqz.com</template>
-                </el-input>
-            </el-form-item>
-            <el-form-item label="手机号" prop="mobile">
-                <el-input v-model="userForm.mobile" placeholder="请输入手机号"/>
-            </el-form-item>
-            <el-form-item label="岗位" prop="job">
-                <el-input v-model="userForm.job" placeholder="请输入岗位"/>
-            </el-form-item>
-            <el-form-item label="状态" prop="state" style="width: 60%;">
-                <el-select v-model="userForm.state" placeholder="用户状态">
-                    <el-option :value="1" label="在职"></el-option>
-                    <el-option :value="2" label="离职"></el-option>
-                    <el-option :value="3" label="试用期"></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="系统角色" prop="roleList">
-                <!-- multiple：多选 -->
-                <el-select v-model="userForm.roleList" 
-                placeholder="请选择用户系统角色"
-                multiple
-                style="width: 80%;">
-                    <el-option v-for="role in roleList" 
-                    :key="role._id" 
-                    :label="role.roleName"
-                    :value="role._id"
-                    ></el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="部门" prop="deptId">
-                <el-cascader 
-                style="width: 80%"
-                v-model="userForm.deptId"
-                placeholder="请选择所属部门"
-                :options="deptList" 
-                :props="{ checkStrictly: true,value:'_id',label:'deptName'}" 
-                clearable />
-            </el-form-item>
-        </el-form>
-        <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="handleClose">取消</el-button>
-                <el-button type="primary" @click="handleSubmit">
-                确定
-                </el-button>
-            </div>
-        </template>
-    </el-dialog>
 </template>
 
 <script>
@@ -128,204 +154,155 @@ import { getCurrentInstance, onMounted , reactive , ref, toRaw} from 'vue'
 import utils from '../uitls/utils';
 
 export default {
-    name: 'user',
+    name: 'leave',
     setup(){
-        //快速初始化一个对象，ctx是上下文的全局对象(获取Composition API上下文对象)
         const { proxy } = getCurrentInstance()
-
-        // 初始化用户表单对象
-        //  reactive 是Vue3中提供的响应式API，用于创建响应式对象（引用类型）
-        const user = reactive({
-            state:1
-        });
-        // ref 是Vue3中提供的响应式API，用于创建响应式引用（基本类型）
-        const userList = ref([]);
-        // 初始化分页器对象
         const pager = reactive({
             pageNum:1,
             pageSize:10,
+            total:0
         })
-        // 定义选中的用户列表的对象
-        const checkedUserIds = ref([])
-        // 弹框显示对象
         const showModal = ref(false)
-        // 新增用户userForm对象
-        const userForm = reactive({
-            // 默认值
-            state:3
+        const showDetailModal = ref(false)
+        const detail = ref({})
+        const applyList = ref([])
+        const leaveForm = reactive({ 
+            applyType:1,
+            startTime:'',
+            endTime:'',
+            leaveTime:'0天',
+            reasons:'',
         })
-        // 角色列表
-        const roleList = ref([])
-        // 部门列表
-        const deptList = ref([])
-        // 定义用户操作行为
-        const action = ref('add')
+        const queryForm = reactive({
+            applyState:''
+        })
+        const action = ref('create')
 
 
         // 表单校验规则
         const rules = reactive({
-            userName:[
-                {required:true,message:'请输入用户名称',trigger:'blur'},
-                {min:3,max:10,message:'长度在3到10个字符',trigger:'blur'}
+            startTime:[
+             {
+                type:'data',
+                required:true,
+                message:'请选择开始时间',
+                trigger:'change'
+             }
             ],
-            userEmail:[{required:true,message:'请输入用户邮箱',trigger:'blur'}],
-            deptId:[{required:true,message:'请选择部门',trigger:'blur'}],
-            mobile:[
-                {pattern:/^1[3-9]\d{9}$/,message:'手机号格式不正确',trigger:'blur'}
+            endTime:[
+             {
+                type:'data',
+                required:true,
+                message:'请选择结束时间',
+                trigger:'change'
+             }
+            ],
+            reasons:[
+             {
+                required:true,
+                message:'请输入休假原因',
+                trigger:['change','blur']
+             }
             ],
         })
         // 定义动态表格格式
         const colums = reactive([
            {
-            label:'用户ID',
-            prop:'userId',
-            width:'200px',
-           }, 
-           {
-            label:'用户名称',
-            prop:'userName',
-            width:'200px',
-           }, 
-           {
-            label:'用户邮箱',
-            prop:'userEmail',
-            width:'200px',
-           }, 
-           {
-            label:'用户角色',
-            prop:'role',
-            // 将role的值转换为对应的角色名称
-            // formatter是一个函数，用于格式化单元格的值。
-            // 类似的有parser函数，配合表单输入控件（输入框），将用户输入的值转换为程序需要的数据格式。此处是表格，只能使用formatter函数。
-            formatter(row,column,value){
-                // row是当前行的数据对象，column是当前列的对象，value是当前单元格的值。
-                // 此处的value是role的值，即0或1。
-                return {
-                    0:'管理员',
-                    1:'普通用户',
-                }[value]
-            },
+            label:'单号',
+            prop:'orderNo',
             width:'150px',
            }, 
            {
-            label:'用户状态',
-            prop:'state',
-            width:'150px',
-            formatter(row,column,value){
-                return {
-                    1:'在职',
-                    2:'离职',
-                    3:'试用期',
-                }[value]
-            },
+            label:'休假时间',
+            prop:'',
+            width:'200px',
+            formatter(row){
+                return utils.formateDate(new Date(row.startTime),"yyyy-MM-dd") 
+                + '至' 
+                + utils.formateDate(new Date(row.endTime),"yyyy-MM-dd")
+            }
            }, 
            {
-            label:'用户注册时间',
+            label:'休假时长',
+            prop:'leaveTime',
+           }, 
+           {
+            label:'休假类型',
+            prop:'applyType',
+            formatter(row,column,value){
+                return {
+                    1:'事假',
+                    2:'调休',
+                    3:'年假',
+                }[value]
+            }
+           }, 
+           {
+            label:'休假原因',
+            prop:'reasons',
+           }, 
+           {
+            label:'申请时间',
             prop:'createTime',
             formatter(row,column,value){
                 return utils.formateDate(new Date(value))
             },
            }, 
            {
-            label:'最后登录时间',
-            prop:'lastLoginTime',
+            label:'审批人',
+            prop:'auditUsers'
+           },
+           {
+            label:'当前审批人',
+            prop:'curAuditUserName'
+           },
+           {
+            label:'审批状态',
+            prop:'applyState',
             formatter(row,column,value){
-                return utils.formateDate(new Date(value))
-            },
-           } 
+                return {
+                    1:'待审批',
+                    2:'审批中',
+                    3:'审批拒绝',
+                    4:'审批通过',
+                    5:'作废',
+                }[value]
+            }
+           },
         ])
 
         // 初始化接口调用
         onMounted(()=>{
-            getUserList();
-            getRoletList();
-            getDeptList();
+            getApplyList()
         })
 
-        // 获取用户列表
-        const getUserList = async ()=>{
-            let params ={
-                ...user,...pager
-            }
-            try{
-                const { list, page } = await proxy.$api.getUserList(params)
-                userList.value = list;
-                pager.total = page.total;
-            } catch(err){
-                console.log(err)
-            }
+        // 获取审批列表
+        const getApplyList = async ()=>{
+            let params = {...queryForm,...pager}
+            let { list,page } = await proxy.$api.getApplyList(params)
+            applyList.value = list;
+            pager.total = page.total;
         }
-        // 查询，获取用户列表
+
+        // 点击申请休假-显示弹窗
+        const handleApply = ()=>{
+            showModal.value = true;
+            action.value = 'create'
+        }
+
+        // 查询，获取审批列表
         const handleQuery = ()=>{
-            getUserList();
+            getApplyList()
         }
         // 重置查询表单
         const handleReset = (form)=>{
-        // 需要给表单配置ref名称(form) 和 给输入框配置prop属性(user对象属性名userId),获取表单实例
-         // ElementPlus 提供的 resetFields方法,用于重置表单字段。
-        //  因为查询和新增用户对话框中都需要重置，动态获取form表单实例，让重置方法共用
             proxy.$refs[form].resetFields()
+            leaveForm.leaveTime = '0天';
         }
         // 分页事件处理
-        // 页码改变时触发,并传递新的页码作为参数。
         const handleCurrentChange = (val)=>{ 
             pager.pageNum = val;
-            getUserList()
-        }
-        // 删除单个用户
-        const handleDel = async (row)=>{
-        try{
-            await proxy.$api.userDel({
-                userIds:[row.userId],
-            });
-            proxy.$message.success('删除成功')
-            getUserList()
-        } catch (err) {
-                console.error('删除失败:', err.response?.data);
-                proxy.$message.error(err.message);
-        }
-    }
-
-        // 批量删除用户
-        const handlePatchDel = async ()=>{
-            if(checkedUserIds.value.length == 0){
-                proxy.$message.error('请至少选择一条数据');
-                return
-            }
-            const res = await proxy.$api.userDel({
-                userIds:checkedUserIds.value
-            })
-            if(res.modifiedCount > 0){
-                proxy.$message.success('删除成功')
-                getUserList()
-            }else{
-                proxy.$message.error('修改失败')
-            }
-        }
-
-        // 表格选择
-        const handleSelectionChange = (list)=>{
-            console.log(list); // 选中的数据
-            let arr =[]
-            list.map(item=>{
-                arr.push(item.userId)
-            })
-            checkedUserIds.value = arr
-        }
-        // 新增用户
-        const handleCreate = ()=>{
-            action.value = 'add';
-            showModal.value = true;
-        }
-        // 获取部门列表
-        const getDeptList = async () =>{
-            let dept = await proxy.$api.getDeptList()
-            deptList.value = dept;
-        }
-        // 获取角色列表
-        const getRoletList = async () =>{
-            let list = await proxy.$api.getRoleAllList()
-            roleList.value = list;
+            getApplyList()
         }
         // 关闭用户弹窗
         const handleClose = ()=>{
@@ -334,60 +311,93 @@ export default {
         }
         // 用户提交
         const handleSubmit = ()=>{
-            // 表单校验，validate方法会执行所有表单项的校验规则。
-            // 校验通过，回调函数中的valid参数为true，否则为false。
             proxy.$refs.dialogForm.validate( async (valid)=>{
                 if(valid){
-                    // toRaw:将响应式对象转换为普通对象(不会直接更改输入框字段)
-                    let params = toRaw(userForm);
-                    params.userEmail += '@vueqz.com';
+                    let params = {...leaveForm};
                     params.action=action.value;
-                    let res = await proxy.$api.userSubmit(params);
+                    let res = await proxy.$api.leaveOperate(params);
                     if(res){
                         showModal.value = false;
-                        proxy.$message.success('新增成功')
-                        handleReset('dialogForm'); // 重置表单
-                        getUserList()
+                        proxy.$message.success('申请休假成功')
+                        handleReset('dialogForm');
+                        getApplyList()
                     }
                 }
             })
         }
-        // 用户编辑
-        const handleEdit = (row)=>{
-            action.value = 'edit';
-            showModal.value = true;
-            proxy.$nextTick(()=>{
-                // Object.assign:将一个或多个源对象的可枚举属性复制到目标对象中。
-                // 将row对象的值赋值给userForm对象
-                Object.assign(userForm,row) 
-            })
-            
+        // 获取休假时长
+        // key是startTime或endTime，val是时间戳。
+        // 当startTime和endTime都有值时，计算两者的差值，然后除以1000*60*60*24，得到天数。
+        const handleDateChange = (key,val)=>{
+            let { startTime,endTime } = leaveForm;
+            if( !startTime || !endTime) return;
+            if(startTime > endTime){
+                proxy.$message.error('开始时间不能晚于结束时间')
+                leaveForm.leaveTime = '0天'
+                // 报错并清空字段
+                setTimeout(()=>{
+                    leaveForm[key] = '';
+                },0)
+            } else{
+                let time = endTime - startTime;
+                leaveForm.leaveTime = Math.ceil(time/(1000*60*60*24)) + '天';
+            }
+        }
+        // 查看
+        const handleDetail = (row)=>{
+            showDetailModal.value = true; 
+            let data = {...row}
+            data.applyTypeName = {
+                1:'事假',
+                2:'调休',
+                3:'年假',
+            }[data.applyType]
+            data.time = (
+                utils.formateDate(new Date(data.startTime),"yyyy-MM-dd")
+                + '至'
+                + utils.formateDate(new Date(data.endTime),"yyyy-MM-dd")
+            )
+            data.applyStateName = {
+                1:'待审批',
+                2:'审批中',
+                3:'审批拒绝',
+                4:'审批通过',
+                5:'作废',
+            }[data.applyState]
+            detail.value = data
+        }
+        // 作废
+        const handleDel = async (_id)=>{
+            try{
+                let params = {_id,action:'delete'}
+                let res = await proxy.$api.leaveOperate(params)
+                proxy.$message.success('作废成功')
+                getApplyList()
+            } catch(e){
+                proxy.$message.error(e.message)
+            }        
         }
         return {
-            user,
-            userList,
-            roleList,
-            deptList,
+            queryForm,
+            applyList,
+            leaveForm,
+            detail,
             action,
             colums,
             pager,
-            checkedUserIds,
-            getUserList,
+            getApplyList,
+            handleApply,
             handleQuery,
             handleReset,
             handleCurrentChange,
-            handleDel,
-            handlePatchDel,
-            handleSelectionChange,
-            handleCreate,
             showModal,
-            userForm,
+            showDetailModal,
             rules,
-            getDeptList,
-            getRoletList,
             handleClose,
             handleSubmit,
-            handleEdit,
+            handleDateChange,
+            handleDetail,
+            handleDel,
         }
     }
 }

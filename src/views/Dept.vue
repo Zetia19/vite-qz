@@ -13,7 +13,12 @@
         </div>
         <div class="base-table">
             <div class="action">
-                <el-button type="primary" @click="handleAdd">创建</el-button>
+                <el-button 
+                type="primary" 
+                @click="handleAdd"
+                v-has="'dept-create'">
+                创建
+              </el-button>
             </div>
             <el-table :data="deptList" row-key="_id" :tree-props="{children:'children'}">
              <el-table-column
@@ -24,10 +29,12 @@
                 <el-table-column fixed="right" label="操作" width="260">
                     <template #default="scope">
                         <el-button size="small" type="primary"
+                        v-has="'dept-edit'"
                         @click="handleEdit(scope.row)" >
                         编辑
                         </el-button>
                         <el-button type="danger" size="small" 
+                        v-has="'dept-delete'"
                         @click="handleDel(scope.row._id)">
                             删除
                         </el-button>
@@ -186,13 +193,7 @@ export default {
           // getUserList();
           getAllUserList();
         })
-
         // 获取用户列表
-        // const getUserList = async ()=>{
-        //    let { list } = await proxy.$api.getUserList();
-        //    userList.value = list || [];
-        //    console.log(userList.value);
-        // }
         const getAllUserList = async ()=>{
            let list = await proxy.$api.getAllUserList();
            userList.value = list || [];

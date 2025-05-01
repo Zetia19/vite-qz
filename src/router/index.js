@@ -86,7 +86,7 @@ async function loadAsyncRoutes() {
 function generateRoutes(menuList) {
     let routes = [];
     const deepList = (list) => {
-        console.log("list=>", list)
+        // console.log("list=>", list)
         while (list.length) {
             let item = list.pop()
             if (item.action) {

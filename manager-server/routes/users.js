@@ -107,7 +107,6 @@ router.post('/operate', async (ctx) => {
       { $inc: { sequence_value: 1 } },   // 将序列值递增1
       { new: true }  // 返回更新后的文档
     )
-    console.log("doc=>", doc)
     //User.findOne 查询时没有使用 await，导致返回的是 Promise 对象而不是查询结果.
     // Promise 对象在 if(res) 判断中始终为真值
     const res = await User.findOne({ $or: [{ userName }, { userEmail }] }, '_id userName userEmail')
