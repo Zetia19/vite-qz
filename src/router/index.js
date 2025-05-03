@@ -55,6 +55,7 @@ async function loadAsyncRoutes() {
             const { menuList } = await API.getPermissionList()
             // console.log('API返回数据:', menuList)
             let routes = generateRoutes(menuList)
+            // console.log('生成的路由:', routes)
 
             // 定义组件映射
             const componentMap = {
@@ -63,6 +64,7 @@ async function loadAsyncRoutes() {
                 'Role': () => import('../views/Role.vue'),
                 'Dept': () => import('../views/Dept.vue'),
                 'Leave': () => import('../views/Leave.vue'),
+                'Approve': () => import('../views/Approve.vue'),
             }
 
             routes.map(route => {
@@ -89,7 +91,7 @@ function generateRoutes(menuList) {
         // console.log("list=>", list)
         while (list.length) {
             let item = list.pop()
-            if (item.action) {
+            if (item.action || item.component) {
                 routes.push({
                     name: item.component,
                     path: item.path,

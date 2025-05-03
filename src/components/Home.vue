@@ -29,7 +29,11 @@
         </div>
         
         <div class="user-info">
-          <el-badge :is-dot="noticeCount>0? true:false" class="notice">
+          <el-badge 
+            :is-dot="noticeCount>0? true:false" 
+            class="notice"
+            @click="$router.push('/audit/approve')"
+          >
             <el-icon><Bell /></el-icon>
           </el-badge>
           
@@ -70,10 +74,15 @@ export default {
      return {
       isCollapse: false, // 菜单是否折叠
       userInfo: this.$store.state.userInfo, // 用户信息
-      noticeCount:0 ,// 通知数量
+      // noticeCount:0 ,// 通知数量
       userMenu:[], // 菜单列表
       activeMenu:location.hash.slice(1), // 当前激活的菜单项
      }
+    },
+    computed:{
+      noticeCount(){
+        return this.$store.state.noticeCount; 
+      }
     },
     mounted(){
       this.getNoticeCount(); // 获取通知数量
@@ -94,7 +103,8 @@ export default {
       async getNoticeCount(){
         try {
           const count = await this.$api.noticeCount()
-          this.noticeCount = count;
+          this.$store.commit('saveNoticeCount',count)
+          return count;
         } catch (error) {
           console.error('获取通知数量失败:', error);
         }
@@ -194,6 +204,7 @@ body{
           margin-right: 15px;
           font-size: 20px;
           line-height: 30px;
+          cursor: pointer;
         }
         .user-dropdown{
           line-height: 45px;

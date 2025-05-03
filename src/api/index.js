@@ -15,7 +15,7 @@ export default {
             url: path.noticeCount,
             method: "get",
             params: {},
-            mock: true
+            mock: false
         })
     },
     getRoleList(params) {
@@ -140,6 +140,14 @@ export default {
     leaveOperate(params) {
         return request({
             url: '/leave/operate',
+            method: "post",
+            data: params,
+            mock: false
+        })
+    },
+    leaveApprove(params) {
+        return request({
+            url: '/leave/approve',
             method: "post",
             data: params,
             mock: false

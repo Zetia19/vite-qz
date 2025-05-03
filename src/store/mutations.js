@@ -18,6 +18,10 @@ export default {
         state.actionist = actionist;
         storage.setItem("actionist", actionist);
     },
+    saveNoticeCount(state, noticeCount) {
+        state.noticeCount = noticeCount;
+        storage.setItem("noticeCount", noticeCount);
+    },
     // 清除用户信息
     clearUserInfo(state) {
         state.userInfo = {};

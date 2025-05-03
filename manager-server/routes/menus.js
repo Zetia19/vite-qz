@@ -10,13 +10,33 @@ router.post('/operate', async (ctx) => {
     let res, info;
     try {
         if (action._value == 'add') {
-            res = await Menu.create(params)
+            if (params.menuType == 1) {
+                res = await Menu.create(params)
+            } else {
+                res = await Menu.create({
+                    parentId: params.parentId,
+                    menuState: 1,
+                    menuType: params.menuType,
+                    menuName: params.menuName,
+                    menuCode: params.menuCode
+                })
+            }
             info = `添加成功`
         } else if (action._value == 'edit') {
             params.updateTime = new Date();
-            console.log("路径", params.path),
-                // const res = await Menu.updateOne({ _id }, { $set: params })
+            if (params.menuType == 1) {
                 res = await Menu.findByIdAndUpdate(_id, params)
+            } else {
+                res = await Menu.findByIdAndUpdate(_id, {
+                    parentId: params.parentId,
+                    menuState: 1,
+                    menuType: params.menuType,
+                    menuName: params.menuName,
+                    menuCode: params.menuCode,
+                    updateTime: params.updateTime
+                })
+            }
+            // const res = await Menu.updateOne({ _id }, { $set: params })
             info = `编辑成功`
         } else {
             res = await Menu.findByIdAndDelete(_id)
